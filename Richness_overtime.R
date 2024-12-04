@@ -10,10 +10,6 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(data.table)
-library(purrr)
-library(broom)
-
-#try linear regression
 
 # Importing all of the richness data 
 sp_rich24 <- rast ("~/Library/CloudStorage/OneDrive-UBC/Directed Studies/Richness data/Combined_SR_2024/Combined_SR_2024.tif")
@@ -74,8 +70,8 @@ names(df_rich22)[3] <- "richness22"
 names(df_rich21)[3] <- "richness21"
 names(df_rich17)[3] <- "richness17"
 
-# Combine data frames into a long format
-df_long <- bind_rows(
+# Combine data frames into a long format (with 2017)
+df_long_with_2017 <- bind_rows(
   mutate(df_rich24, year = 2024, richness = richness24) %>% select(-richness24),
   mutate(df_rich23, year = 2023, richness = richness23) %>% select(-richness23),
   mutate(df_rich22, year = 2022, richness = richness22) %>% select(-richness22),
@@ -84,50 +80,48 @@ df_long <- bind_rows(
 )
 
 # Combine data frames into a long format (without 2017)
-df_long <- bind_rows(
+df_long_without_2017 <- bind_rows(
   mutate(df_rich24, year = 2024, richness = richness24) %>% select(-richness24),
   mutate(df_rich23, year = 2023, richness = richness23) %>% select(-richness23),
   mutate(df_rich22, year = 2022, richness = richness22) %>% select(-richness22),
   mutate(df_rich21, year = 2021, richness = richness21) %>% select(-richness21)
 )
 
-# Plot species richness over time (all years)
-ggplot(df_long, aes(x = factor(year), y = richness)) +
-  geom_boxplot() +
-  labs(title = "Species Richness Over Time",
-       x = "Year",
-       y = "Species Richness") +
-  theme_minimal()
-
-# Aggregate the data to calculate mean richness for each year (all years)
-df_aggregated <- df_long %>%
+# Aggregate the data to calculate mean richness for each year
+df_aggregated_with_2017 <- df_long_with_2017 %>%
   group_by(year) %>%
   summarize(mean_richness = mean(richness, na.rm = TRUE))
 
-# Plot species richness over time (without 2017)
-ggplot(df_aggregated, aes(x = year, y = mean_richness)) +
+df_aggregated_without_2017 <- df_long_without_2017 %>%
+  group_by(year) %>%
+  summarize(mean_richness = mean(richness, na.rm = TRUE))
+
+# Plot species richness over time (with 2017)
+richnes_vs_time <- ggplot(df_aggregated_with_2017, aes(x = year, y = mean_richness)) +
   geom_line() +
   geom_point() +
-  labs(title = "Mean Species Richness Over Time",
+  labs(title = "Mean Species Richness Over Time (With 2017)",
        x = "Year",
        y = "Mean Species Richness") +
   theme_minimal()
 
-# Aggregate the data to calculate mean richness for each year (without 2017)
-df_aggregated <- df_long %>%
-  group_by(year) %>%
-  summarize(mean_richness = mean(richness, na.rm = TRUE))
-
 # Plot species richness over time (without 2017)
-ggplot(df_aggregated, aes(x = year, y = mean_richness)) +
+richnes_vs_time_without2017 <- ggplot(df_aggregated_without_2017, aes(x = year, y = mean_richness)) +
   geom_line() +
   geom_point() +
-  labs(title = "Mean Species Richness Over Time (Excluding 2017)",
+  labs(title = "Mean Species Richness Over Time (Without 2017)",
        x = "Year",
        y = "Mean Species Richness") +
   theme_minimal()
 
-# Save the plot to OneDrive
-one_drive_path <- ("~/Library/CloudStorage/OneDrive-UBC/Directed Studies/Richness data/richness_vs_time.png")
-ggsave(rich_vs_time_line_excl17, filename = one_drive_path, width = 10, height = 6, dpi = 300)
+# Printing both plots
+print(richnes_vs_time)
+print(richnes_vs_time_without2017)
+
+# Save the plot with 2017 data to OneDrive
+ggsave("~/Library/CloudStorage/OneDrive-UBC/Directed Studies/Plots/Mean_Species_Richness.png", plot = richnes_vs_time)
+
+# Save the plot without 2017 data to OneDrive
+ggsave("~/Library/CloudStorage/OneDrive-UBC/Directed Studies/Plots/Mean_Species_Richness_without_2017.png", plot = richnes_vs_time_without2017)
+
 
