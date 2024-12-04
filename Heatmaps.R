@@ -94,27 +94,3 @@ ggsave(one_drive_path,
        height = 8,   
        dpi = 300)    
 
-#Define the DAG with positive and negative relationships
-dag <- dagitty("
-dag {
-  Mean_NDVI -> Variance_NDVI
-  Mean_NDVI -> CV_NDVI
-  Mean_NDVI -> Richness
-  Variance_NDVI -> Richness
-  CV_NDVI -> Richness
-}
-")
-
-# Extract edges from the DAG as a data frame
-dag_edges <- as.data.frame(dagitty::edges(dag))
-
-# Extract the unique nodes (variables)
-dag_nodes <- data.frame(
-  name = unique(c(dag_edges$from, dag_edges$to)),
-  x = c(1, 2, 2, 1, 1),  # Define dummy x positions for each node
-  y = c(2, 3, 1, 2, 4)   # Define dummy y positions for each node
-)
-
-# Display the data for verification
-print(dag_edges)
-print(dag_nodes)
